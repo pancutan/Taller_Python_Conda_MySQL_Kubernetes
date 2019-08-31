@@ -1,0 +1,60 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      # - db_data:/var/lib/mysql
+      - /home/s/bases:/var/lib/mysql
+    environment:
+       MYSQL_ROOT_PASSWORD: CumbianchaVoladora # Necesario para crear bases y lanzar GRANTs
+       MYSQL_DATABASE: inventario
+       MYSQL_USER: inventario_user
+       MYSQL_PASSWORD: MiViejaMula
+    ports:
+      # Este puerto 3307 no es para la comunicación inter contenedores: es para poder 
+      # entrar al contenedor mysql con un cliente mysql gráfico, sin colisionar el 
+      # puerto contra otro MySQL en la maquina real en 3306
+      # Ejemplo para probar desde la maquina real: 
+      # mysql -u inventario_user -pMiViejaMula inventario -h 0.0.0.0 -P 3307
+      - 3307:3306
+    # Solo si quiero que levante con el proximo inicio de dockerd, kubernetes, swarm, etc
+    # restart: always
+
+  programa:
+    links:
+      - db
+    build:
+      context: .
+      dockerfile: Dockerfile.python-simple
+
+    # Comandos
+    # La primera vez conviene así, para chequear / setear la base
+    # command: [ "byobu"] # Lanzar por separado: docker-compose up programa
+    # Una vez adentro, podemos
+    # * Probar el acceso a la base mediante
+    #   mysql -u root -pCumbianchaVoladora -h db
+    # * Inyectarle la base agregando < inventario.sql
+    # * grantear permisos a inventario_user, probarlos con
+    # * mysql -u inventario_user -pMiViejaMula inventario -h db
+    #
+    # Debuggear con ipdb, updb, etc
+    # command: [ "python", "-m", "pudb", "inventario.py" ]
+    #
+    # Si ya estamos seguros que funciona todo:
+    command: [ "python", "inventario.py"]
+    volumes:
+      - .:/code
+    # Solo si quiero que levante con el proximo inicio de dockerd, kubernetes, swarm, etc
+    # restart: always
+#    networks:
+#      - programa_python_red_interna
+    depends_on:
+      - db
+
+volumes:
+    db_data: {}
+
+# networks:
+#   programa_python_red_interna:
+#     driver: bridge

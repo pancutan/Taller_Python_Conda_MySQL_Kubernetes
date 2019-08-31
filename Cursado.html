@@ -1,0 +1,102 @@
+<h1 id="curso-python-django-docker-kubernetes">Curso Python, Django, Docker, Kubernetes</h1>
+<blockquote>
+<ol start="2019" type="1">
+<li>Copyleft Sergio A. Alonso</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>Estudiante: Enrique Ramirez - 20 de julio de 2019</p>
+</blockquote>
+<h2 id="objetivos">Objetivos</h2>
+<ul>
+<li>Acostumbrarse al ciclo de integración continua que propone Docker y Kubernetes</li>
+<li>Obtener soltura en Linux, MySQL y Python</li>
+<li>Portar fácilmente aplicaciones hacia la nube.</li>
+</ul>
+<figure>
+<img src="inner-workflow.png" alt="" /><figcaption>Ciclo de trabajo Docker segun Microsoft</figcaption>
+</figure>
+<h2 id="introducción">Introducción</h2>
+<p>Los DevOps trabajan la mayor parte del tiempo en la terminal. Por lo tanto conviene setear ésta acordemente.</p>
+<h3 id="entorno-de-trabajo">Entorno de trabajo</h3>
+<h3 id="manejador-de-sesiones-en-consola">Manejador de sesiones en consola</h3>
+<p>Conviene instalar con apt-get, yum, pacman, etc cualquiera de estos paquetes, y aprender a usarlos en sus páginas oficiales: Screen, Tmux o Byobu</p>
+<h4 id="shell">Shell</h4>
+<p>Se propone por su similitud con Mac y por sus funciones avanzados de instrospección de comandos, al shell Zsh por sobre el clásico Bash que viene por defecto con Linux. Instrucciones generales para setear una maquina con Ubuntu:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">sudo</span> apt-get install zsh git rake curl</span></code></pre></div>
+<p>Cambiar “para siempre” de Bash a Zsh</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a> $ <span class="fu">chsh</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="ex">Contrase</span>ña:</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="ex">Cambiando</span> la consola de acceso para usuario</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="ex">Introduzca</span> el nuevo valor, o presione INTRO para el predeterminado</span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="ex">Consola</span> de acceso [/bin/bash]: /usr/bin/zsh</span></code></pre></div>
+<p>Todavía hace falta “enchular” a Zsh. Le bajamos el instalador del proyecto</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">sh</span> -c <span class="st">&quot;</span><span class="va">$(</span><span class="fu">wget</span> https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+<p>Una vez instalado conviene ademas agregar algún tema como Powerlevel 10k</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">git</span> clone https://github.com/romkatv/powerlevel10k.git <span class="va">$ZSH_CUSTOM</span>/themes/powerlevel10k</span></code></pre></div>
+<p>Ahora sí, alteramos las siguientes variables de ~/.zshrc</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="va">plugins=(</span>git nvm node kubectl django python pip docker docker-compose<span class="va">)</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="va">ZSH_THEME=</span><span class="st">&quot;powerlevel10k/powerlevel10k&quot;</span></span></code></pre></div>
+<p>Para probar los cambios, salimos de la sesión con exit y volvemos a entrar.</p>
+<h4 id="vim-como-ide">Vim como IDE</h4>
+<p>Si bien todos los Linux incluyen Vi, se recomienda instalar el último vim posible. La m de “vim” mnemotecnicamente la vamos a considerar “mejorado”.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">sudo</span> apt-get install vim</span></code></pre></div>
+<p>Se puede “enchular” también a Vim, agregando el paquete <a href="https://github.com/carlhuda/janus">Janus</a>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1"></a><span class="ex">curl</span> -L https://bit.ly/janus-bootstrap <span class="kw">|</span> <span class="fu">bash</span></span></code></pre></div>
+<p>Conviene ademas definir una Leader Key. En ~/.vimrc agregar</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1"></a><span class="bu">let</span> mapleader = <span class="st">&quot;,&quot;</span></span></code></pre></div>
+<p>La Leader key sirve para lanzar ciertas funciones, como el explorador de archivos “Nerd Tree”, con , (coma) seguida de n. Puede ver una lista de teclas interesantes en <a href="http://www.eim.esc.edu.ar/bunker.org.ar/incubadora.varios/TazaVimSoloJpeg/TazaVim11.jpg">Taza Vim</a></p>
+<h2 id="codificar-una-primer-versión-estable-del-proyecto">1. Codificar una primer versión estable del proyecto</h2>
+<p>Crearemos un pequeño programa en Python que consulta una base de datos MySQL llamada “inventario”. El propósito es mostrar como a pesar de funcionar bien, es sumamente incómoda de portar a otros sistemas operativos. Docker por supuesto, vendrá luego a salvarnos.</p>
+<h3 id="mysql">1.1. MySQL</h3>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-18-04">Instalar MySql en Ubuntu 18:</a> Resumen de comandos:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">sudo</span> apt-get install mysql-server</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="fu">sudo</span> mysql_secure_installation</span></code></pre></div>
+<p>En su primera sesión con MySQL, fabrique una base de datos, y asigne permisos para su uso:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1"></a>$ <span class="ex">mysql</span> -u root -p</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="ex">mysql</span><span class="op">&gt;</span> CREATE DATABASE inventario<span class="kw">;</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="ex">mysql</span><span class="op">&gt;</span> GRANT ALL PRIVILEGES ON inventario.* TO <span class="st">&#39;inventario_user&#39;</span>@<span class="st">&#39;localhost&#39;</span> IDENTIFIED BY <span class="st">&#39;MiViejaMula&#39;</span> WITH GRANT OPTION<span class="kw">;</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="ex">mysql</span><span class="op">&gt;</span> FLUSH PRIVILEGES<span class="kw">;</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="ex">mysql</span><span class="op">&gt;</span> exit<span class="kw">;</span></span></code></pre></div>
+<p>Inyecte ahora el archivo inventario.sql en su nueva base</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1"></a><span class="ex">mysql</span> -u root -p inventario <span class="op">&lt;</span> inventario.sql</span></code></pre></div>
+<p>Pruebe que puede entrar a su nueva base, con el usuario creado a tal fin:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1"></a><span class="ex">mysql</span> -u inventario_user -p inventario</span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="ex">mysql</span><span class="op">&gt;</span> SELECT * FROM amigos<span class="kw">;</span></span></code></pre></div>
+<h3 id="instalar-python-y-django-con-conda">1.2. Instalar Python (y Django) con Conda</h3>
+<p>Si bien Python ya viene instalado en todos los sistemas operativos Linux y Mac, éste se reserva para el uso del propio sistema operativo, y particularmente para ser usado por el root. Tampoco conviene llenar el sistema operativo con librerías cruzadas entre Python 2 y Python 3. En su lugar conviene instalar un manejador de entornos o “VirtualEnv”. El problema entonces es que tanto Windows, como Mac como Linux tienen formas distintas de acometer este paso. La mejor manera unificada de acometerlo es empleando una versión simple de Anaconda, llamada miniconda.</p>
+<p>Sírvase acceder al excelente material documentativo creado en este sitio. No hace falta instalar todavía Django: basta con la parte de Python: <a href="https://hcosta.github.io/instalardjango.com/">Instalar Python y Django</a>. Resúmen de comandos:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">wget</span> https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh</span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="fu">chmod</span> u+x Miniconda3-latest-Linux-x86_64.sh</span></code></pre></div>
+<p>Mi única observación al respecto es que el instalador de Miniconda <em>no toma en cuenta</em> que estamos usando Zsh. Por tanto debemos setear nosotros mismos al final de ~/.zshrc las mismas y últimas líneas que fueron agregadas a ~/.bashrc - <strong>no copie estas líneas</strong>: saque las originales del ~/.bashrc</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1"></a><span class="va">__conda_setup=</span><span class="st">&quot;</span><span class="va">$(</span><span class="st">&#39;/home/eramirez/miniconda3/bin/conda&#39;</span> <span class="st">&#39;shell.bash&#39;</span> <span class="st">&#39;hook&#39;</span> <span class="op">2&gt;</span> <span class="ex">/dev/null</span><span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="kw">if</span><span class="bu"> [</span> <span class="va">$?</span> <span class="ot">-eq</span> 0<span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a>    <span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$__conda_setup</span><span class="st">&quot;</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="kw">else</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a>    <span class="kw">if</span><span class="bu"> [</span> <span class="ot">-f</span> <span class="st">&quot;/home/eramirez/miniconda3/etc/profile.d/conda.sh&quot;</span><span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb14-6"><a href="#cb14-6"></a>        <span class="bu">.</span> <span class="st">&quot;/home/eramirez/miniconda3/etc/profile.d/conda.sh&quot;</span></span>
+<span id="cb14-7"><a href="#cb14-7"></a>    <span class="kw">else</span></span>
+<span id="cb14-8"><a href="#cb14-8"></a>        <span class="bu">export</span> <span class="va">PATH=</span><span class="st">&quot;/home/eramirez/miniconda3/bin:</span><span class="va">$PATH</span><span class="st">&quot;</span></span>
+<span id="cb14-9"><a href="#cb14-9"></a>    <span class="kw">fi</span></span>
+<span id="cb14-10"><a href="#cb14-10"></a><span class="kw">fi</span></span>
+<span id="cb14-11"><a href="#cb14-11"></a><span class="bu">unset</span> <span class="va">__conda_setup</span></span></code></pre></div>
+<p>Tras estar seguros que estas líneas figuran al final ~/.zshrc y en ~/.bashrc, salimos de la terminal con exit, o reiniciamos el equipo, y volvemos a entrar. Tras lo cual, el comando “conda” debería respondernos, para por ejemplo, setear un primer entorno virtual:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1"></a><span class="ex">python</span> -V (para ver la versión de Python del sistema operativo que <span class="st">&quot;no&quot;</span> queremos usar)</span>
+<span id="cb15-2"><a href="#cb15-2"></a></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="fu">which</span> python (para ver la ruta que no queremos usar, ejemplo, /usr/bin/python2.7)</span>
+<span id="cb15-4"><a href="#cb15-4"></a></span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="ex">conda</span> create -n py36 python=3.6</span>
+<span id="cb15-6"><a href="#cb15-6"></a></span>
+<span id="cb15-7"><a href="#cb15-7"></a><span class="ex">conda</span> activate py36</span>
+<span id="cb15-8"><a href="#cb15-8"></a></span>
+<span id="cb15-9"><a href="#cb15-9"></a><span class="ex">python</span> -V (Python ahora debería sestar compilado por Anaconda Inc.)</span>
+<span id="cb15-10"><a href="#cb15-10"></a></span>
+<span id="cb15-11"><a href="#cb15-11"></a><span class="fu">which</span> python (la ruta debería apuntar ahora a nuestro propio home)</span></code></pre></div>
+<h3 id="instalar-las-librerías-necesarias-para-que-python-trabaje-con-mysql">1.3. Instalar las librerías necesarias para que Python trabaje con MySQL</h3>
+<p>Retomamos proyecto. Se incluye a modo de ejemplo un archivo requirements.txt para pip</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1"></a><span class="ex">conda</span> activate py36</span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="ex">pip</span> install -r requirements.txt</span></code></pre></div>
+<h3 id="probar-el-programa">1.4. Probar el programa</h3>
+<p>El modo debug -m pudb es optativo, solo para tener un mejor control del programa.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1"></a><span class="ex">python</span> -m pudb inventario.py</span></code></pre></div>

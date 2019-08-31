@@ -1,0 +1,47 @@
+version: '3.7'
+
+# https://medium.com/@rukeith/note-learn-how-to-build-private-docker-registry-with-website-and-use-it-81d6916b7adc
+
+# $ docker-compose -f docker-compose.yml up -d
+
+services:
+  registry:
+    image: registry:2
+    restart: unless-stopped
+    container_name: docker-registry
+    labels:
+      - "PROJECT=registry"
+    ports:
+      # 5001 es para no molestarse con dockerd
+      # Recordar en las maquinas clientas de tener un archivo /etc/docker/daemon.json con contenido
+      # { "insecure-registries":["http://hub.supercanal.tv:5001"] }
+      - 5001:5001
+    networks:
+      - docker-registry-network
+    environment:
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+      - REGISTRY_HTTP_ADDR=0.0.0.0:5001
+    volumes: # Para poder rescatar el config.yml
+      - "/home/salonso/docker-registry/backup/registry/images:/var/lib/registry"
+      # - "/home/salonso/docker-registry/backup/registry/config:/etc/docker/registry"
+
+  registry-ui:
+    image: konradkleine/docker-registry-frontend:v2
+    restart: unless-stopped
+    container_name: registry-ui
+    labels:
+      - "PROJECT=registry"
+    ports:
+      - 3000:80
+    networks:
+      - docker-registry-network
+    environment:
+      - ENV_DOCKER_REGISTRY_PORT=5001
+      - ENV_DOCKER_REGISTRY_HOST=registry
+    depends_on:
+      - registry
+networks:
+  docker-registry-network:
+    name: docker-registry-network
+    labels:
+      - "PROJECT=registry"
