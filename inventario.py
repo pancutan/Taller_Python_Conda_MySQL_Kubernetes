@@ -7,10 +7,10 @@ mydb = mysql.connector.connect(
     # port = "3306",
 
     # Hacia el MySQL del contenedor enlazado en docker-compose.yml
-    host="db", # (requiere de un link en el docker-compose.yml)
+    host="34.67.116.180", # (requiere de un link en el docker-compose.yml)
     port = "3306",
     user="inventario_user",
-    passwd="MiViejaMula",
+    passwd="password",
     database="inventario"
 )
 

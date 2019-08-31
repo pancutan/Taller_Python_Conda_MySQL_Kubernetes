@@ -225,7 +225,7 @@ debemos subirlas a un Registry. Implementaciones aquí, en Registry/registry.md 
   https://docs.docker.com/registry/
 
 * Usar un cloud
-  * Caso Amazon ECR (Elastic Ccontainer Registry)
+  * Caso Amazon ECR (Elastic Container Registry)
     Datos:
 
     * Nota: creado un repositorio de prueba en 599651702009.dkr.ecr.us-west-2.amazonaws.com/inventario-repo
@@ -275,10 +275,10 @@ cat ~/.ssh/id_rsa.pub
 
 Estas llaves, ambas subirlas a https://github.com/settings/keys
 
-* Solo necesario en Github: hacerse un fork de este proyecto https//www.github.com/pancutan/1-Taller_Python_Conda_MySQL_Kubernetes
+* Solo necesario en Github: hacerse un fork de este proyecto https//www.github.com/pancutan/Taller_Python_Conda_MySQL_Kubernetes
 * En una carpeta vacía, clonar proyecto. Si se trata de Gitlab, el profesor solo debe invitar a los alumnos y éstos van por la url original. Es decir:
-  * Con Github: git clone git@github.com:USUARIO_ALUMNO/1-Taller_Python_Conda_MySQL_Kubernetes.git
-  * Con Gitlab (ejemplo): git clone git@gitlab.com:pancutan/1-Taller_Python_Conda_MySQL_Kubernetes.git
+  * Con Github: git clone git@github.com:USUARIO_ALUMNO/Taller_Python_Conda_MySQL_Kubernetes.git
+  * Con Gitlab (ejemplo): git clone git@gitlab.com:pancutan/Taller_Python_Conda_MySQL_Kubernetes.git
 
 Poner allí adentro las modificaciones de código, comitear, pushear, realizar pull request si en los apuntes del profesor algo debiera corregirse.
 
@@ -331,7 +331,7 @@ En tanto que Kubernetes requiere de imagenes ya listas para desplegar. La línea
 Ahora sí estamos en condiciones de hacer el transpiler con kompose create seguido de kompose create -f a cada uno de los archivos generados, o simplemente kompose up
 
 ```bash
-escuelaint@cloudshell:~/1-Taller_Python_Conda_MySQL_Kubernetes/conversion-a-kubernetes (api-project-430007987702)$ kompose up
+escuelaint@cloudshell:~/Taller_Python_Conda_MySQL_Kubernetes/conversion-a-kubernetes (api-project-430007987702)$ kompose up
 
 INFO We are going to create Kubernetes Deployments, Services and PersistentVolumeClaims for your Dockerized application. If you need different kind of resources, use the 'kompose convert' and 'kubectl create -f' commands instead.
 
@@ -346,7 +346,7 @@ INFO Successfully created PersistentVolumeClaim: programa-claim0 of size 100Mi. 
 Tal como dice, "su aplicación ha sido desplegada". Se puede monitorear ahora con comandos kubectl
 
 ```bash
-escuelaint@cloudshell:~/1-Taller_Python_Conda_MySQL_Kubernetes/conversion-a-kubernetes (api-project-430007987702)$ kubectl get deployment,svc,pods,pvc
+escuelaint@cloudshell:~/Taller_Python_Conda_MySQL_Kubernetes/conversion-a-kubernetes (api-project-430007987702)$ kubectl get deployment,svc,pods,pvc
 NAME                              READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.extensions/db          0/1     1            0           42s
 deployment.extensions/hello-app   0/1     1            0           15d
@@ -363,7 +363,7 @@ pod/programa-55f878c7-lv5jv     0/1     ContainerCreating   0          42s
 
 NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 persistentvolumeclaim/db-data           Bound    pvc-d02524f6-b6dd-11e9-a798-42010a800016   1Gi        RWO            standard       43s
-persistentvolumeclaim/programa-claim0   Bound    pvc-d0425381-b6dd-11e9-a798-42010a800016   1Gi        RWO            standard       43s
+persistentvolumeclaim/programa-claim0   Bound    pvc-d042538Tb6dd-11e9-a798-42010a800016   1Gi        RWO            standard       43s
 ```
 
 De acuerdo a la columna STATUS y a comandos tales como kubectl logs, es posible que debamos "afinar" nuestro docker-compose.yml (o los archivos generados con kompose convert)

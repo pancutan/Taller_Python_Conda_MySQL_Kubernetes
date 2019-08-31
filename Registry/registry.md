@@ -2,7 +2,7 @@
 
 ## Opcion usar GCE
 
-Ver /home/s/Dropbox/Trucos/Python/1-Taller_Python_Conda_MySQL_Kubernetes/Cursado.md
+Ver ../Cursado.md
 
 ## Opcion usar Amazon, con ECR (EC2_Container_Registry)
 
@@ -29,8 +29,7 @@ pip install awscli --upgrade --user
 $(aws ecr get-login --no-include-email --region us-west-2)
 ```
 
-* Probar de subir una imagen. Por ejemplos las definidas en este proyecto
-  ~/Trucos/Python/1-PythonSimpleConCondaYMysql
+* Probar de subir una imagen. Por ejemplo las definidas en este proyecto
 
   * Arrancamos los contenedores para saber a que images están conectados, con
     docker-compose up db
@@ -39,12 +38,12 @@ $(aws ecr get-login --no-include-email --region us-west-2)
   * Buscamos que imagenes fueron instanciadas, con portainer y docker images
 
     CONTAINER ID   IMAGE                                  NAMES
-    936a5ce737d1   1-pythonsimpleconcondaymysql_programa  1-pythonsimpleconcondaymysql_programa_run_1
-    116339c28a80   mysql:5.7                              1-pythonsimpleconcondaymysql_db_1
+    936a5ce737d1   pythonsimpleconcondaymysql_programa  pythonsimpleconcondaymysql_programa_run_1
+    116339c28a80   mysql:5.7                            pythonsimpleconcondaymysql_db_1
 
     * Como se puede ver, la imagen de MySQL no me interesa subirla. Entonces taggeo la que contiene el programa. La primer vez uso la latest, pero podría pushear una "estable"
 
-    docker tag 1-pythonsimpleconcondaymysql_programa:latest 599651702009.dkr.ecr.us-west-2.amazonaws.com/inventario-repo:latest
+    docker tag pythonsimpleconcondaymysql_programa:latest 599651702009.dkr.ecr.us-west-2.amazonaws.com/inventario-repo:latest
 
     * Ahora si, pusheo la que está taggeada:
     docker push 599651702009.dkr.ecr.us-west-2.amazonaws.com/inventario-repo:latest
