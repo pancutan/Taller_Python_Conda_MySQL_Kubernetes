@@ -1,6 +1,64 @@
 # Registry con autenticación basica
 
-## Opcion usar GCE
+# Opción mas integrada, económica y visual: dentro de un Gitlab-ce (sin terminar)
+
+Fuentes
+- ~/Dropbox/Trucos/GIT/Gitlab/gitlab-server-docker/Gitlab_comentarios_sobre_instalacion_en_webhosting_8.md
+- https://docs.gitlab.com/ce/administration/packages/container_registry.html
+
+Primero copio los certificados de supercanal a webhosting 8 y lso referencio dentro del docker-compose.yml, en la sección volumen
+
+```yml
+  volumes:
+    - '/home/salonso/certs-pagos:/etc/gitlab/ssl'
+```
+
+Entro al gitlab-ce
+
+```bash
+docker-compose exec web bash (el por defecto es root)
+```
+
+Allí edito los siguientes archivos:
+
+* /opt/gitlab/embedded/service/gitlab-rails/lib/support/nginx/registry-ssl
+
+```
+server {
+  listen *:80;
+  ## server_name  registry.gitlab.example.com;
+  server_name  hub.supercanal.tv;
+
+[mas cosas]
+
+server {
+  listen *:443 ssl http2;
+  server_name  hub.supercanal.tv;
+
+  (mas cosas)
+  ssl on;
+
+  ssl_certificate /etc/gitlab/ssl/supercanal.crt
+
+  ssl_certificate_key /etc/gitlab/ssl/supercanal.key
+
+```
+
+* /var/opt/gitlab/gitlab-rails/etc/gitlab.yml
+* /etc/gitlab/gitlab.rb
+
+Reconfigurar y reiniciar:
+
+```bash
+gitlab-ctl reconfigure && update-permissions
+
+(y por afuera del contenedor, no solo Ctrl + C en el docker compose up, sino ademas:
+
+docker-compose down && docker-compose up
+```
+
+
+## Opcion GCE
 
 Ver ../Cursado.md
 
@@ -70,20 +128,28 @@ $(aws ecr get-login --no-include-email --region us-west-2)
 
 ## On premise, sin autenticación, con docker-compose, y posibilidad de borrar imagenes por linea de comandos
 
-Dejo aquí en ~/Dropbox/Trucos/Docker/Registry/docker-registry todo lo necesario para levantar un registry sin autenticación, que permite borrar por linea de comandos las imagenes viejas.
+Dejo aquí dos ejemplos con todo lo necesario para levantar un registry sin autenticación, que permite borrar por linea de comandos las imagenes viejas.
+En docker-registry-joxit ademas le agregue la parte de ui y un programita en ruby que en base a los ejemplo paso a paso de abajo, borra los repos viejos con un menú.
 
-Lo dejo todo corriendo en 5001 en lugarde 5000, porque me daba conflicto con un puerto 5000 usado por dockerd
+Cualquier cosa, que se requiera algo mas sofisticado, dos opciones:
+- Ver de poner la solución basada en Gitlab que expliqué arriba, en la misma red de uno de estos registry (ver en docker-registry-joxit/docker-compose.yml)
+- O probar esto [Pelado Nerd](https://www.youtube.com/watch?v=stVspIUHP4Q)
 
-Levantarlo con docker-compose up, ignorar la parte de ui, o investigarla
 
-Fuente: https://stackoverflow.com/a/43786939
+Notas importantes
 
-La parte de borrado de imagenes es como se describe a continuación. Antes, al no estar autenticado, requiere de poner en la maquina clienta, un archivo /etc/docker/daemon.json y adentro
+Al no estar autenticado, requiere de poner en la maquina clienta, un archivo /etc/docker/daemon.json y adentro
 
 ```json
 {
   "insecure-registries" : ["hub.supercanal.tv:5000"]
 }
+```
+
+Esto es muy importante tambien por ejemplo para Minikube, que hay que arrancarlo así:
+
+```bash
+minikube start --insecure-registry="hub.supercanal.tv:5000"  --vm-driver=virtualbox
 ```
 
 Ahora si, para borrar imagenes, obtengo name de lo que tengo arriba, primero, y luego los tags
@@ -108,7 +174,7 @@ sha256:de537a693a6452b7dfb565e2bc6bc99126cfa2d364d799e6c5952ebbc33f76d9
 Lo marco para borrado
 
 ```bash
-curl -v --silent -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -X DELETE http://hub.supercanal.tv:5001/v2/python-inventario-imagen/manifests/sha256:de537a693a6452b7dfb565e2bc6bc99126cfa2d364d799e6c5952ebbc33f76d9
+curl -v --silent -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -X DELETE http://hub.supercanal.tv:5000/v2/python-inventario-imagen/manifests/sha256:de537a693a6452b7dfb565e2bc6bc99126cfa2d364d799e6c5952ebbc33f76d9
 ```
 
 Me voy al servidor Webhosting 8, me meto adentro de la caja y purgo
@@ -233,10 +299,3 @@ curl http://hub.supercanal.tv:5000/v2/python-inventario-imagen/tags/list
 * error creating overlay mount to /var/lib/docker/overlay2/ [...] /merged: device or resource busy
   Insistir en el push varias veces
 
-## Investigar: Registry con UI, útil para borrar el exceso de imagenes remotas
-
-Aprovecharse de una UI entre aquellas existentes por Internet, es mas complejo de lo que parece. La gente de
-Docker no lo facilita, para vender el servicio. Y otras soluciones se encuentran demasiado acopladas al tipo 
-de solución que crearon sus desarrolladores para resover sus problemas especificos. Tambien hay demasiados forks.
-
-Esta solución es la que me parece más adecuada: [Pelado Nerd](https://www.youtube.com/watch?v=stVspIUHP4Q)
